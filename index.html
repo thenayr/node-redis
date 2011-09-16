@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chat with Redis</title>
+</head>
+<body>
+    <p>Status: <span id="status">Undefined</span></p>
+    <ul id="messages">
+    <!-- chat messages go here -->
+    </ul>
+    <input id="chatform" type="text" autofocus="autofocus" />
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+<script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
+<script type="text/coffeescript">
+socket = io.connect ''
+
+
+$('#chatform').click ->
+  socket.emit 'message', $('#chatform').val()
+  $('#chatform').val('')
+  $('<li>').text(message).appendTo $('#messages')
+
+socket.on 'message', (message) ->
+  $('<li>').text(message).appendTo $('#messages')
+
+$status = $ '#status'
+socket.on 'connect', ->
+  $status.text 'Connected'
+
+socket.on 'disconnect', ->
+  $status.text 'Disconnected'
+
+socket.on 'reconnecting', (seconds) ->
+  $status.text "Reconnecting in #{seconds} seconds"
+
+socket.on 'reconnect', ->
+  $status.text 'Reconnected'
+
+socket.on 'reconnect_failed', ->
+  $status.text 'Failed to reconnect'
+</script>
+</body>
+</html>
