@@ -2,7 +2,6 @@
 http = require 'http'
 io = require 'socket.io'
 redis = require 'redis'
-rc = redis.createClient()
 fs = require 'fs'
 
 ##create a server
@@ -12,21 +11,22 @@ server = http.createServer (req, res) ->
     res.writeHead 200, 'Content-type':  'text/html'
     res.end data, 'utf8'
 
+##Create redis connections
+pub = redis.createClient()
+sub = redis.createClient()
+store = redis.createClient()
+
 ##listen up
 server.listen 3000
 socketio = io.listen server
 
-##io stuff
-socketio.sockets.on 'connection', ->
-  console.log 'tits'
-##redis time
+sub.subscribe 'chat'
 
-##on connection subscribe to chat channel
-rc.on 'connect', ->
-  console.log 'tits'
-  rc.subscribe 'chat'
+socketio.sockets.on 'connection', (socket) ->
+  socket.send 'welcome'
 
-##when a message is submitted, emit to everyone 
-rc.on 'message', (channel, message) ->
-  console.log 'sending:' + (message)
-  socketio.sockets.emit 'message', (message)
+  socket.on 'clientmessage', (text) ->
+    pub.publish 'chat', text
+
+  sub.on 'message', (channel, text) ->
+    socket.send text

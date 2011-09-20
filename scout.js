@@ -1,9 +1,8 @@
 (function() {
-  var fs, http, io, rc, redis, server, socketio;
+  var fs, http, io, pub, redis, server, socketio, store, sub;
   http = require('http');
   io = require('socket.io');
   redis = require('redis');
-  rc = redis.createClient();
   fs = require('fs');
   server = http.createServer(function(req, res) {
     return fs.readFile("" + __dirname + "/index.html", function(err, data) {
@@ -16,17 +15,19 @@
       return res.end(data, 'utf8');
     });
   });
+  pub = redis.createClient();
+  sub = redis.createClient();
+  store = redis.createClient();
   server.listen(3000);
   socketio = io.listen(server);
-  socketio.sockets.on('connection', function() {
-    return console.log('tits');
-  });
-  rc.on('connect', function() {
-    console.log('tits');
-    return rc.subscribe('chat');
-  });
-  rc.on('message', function(channel, message) {
-    console.log('sending:' + message);
-    return socketio.sockets.emit('message', message);
+  sub.subscribe('chat');
+  socketio.sockets.on('connection', function(socket) {
+    socket.send('welcome');
+    socket.on('clientmessage', function(text) {
+      return pub.publish('chat', text);
+    });
+    return sub.on('message', function(channel, text) {
+      return socket.send(text);
+    });
   });
 }).call(this);
