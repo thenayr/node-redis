@@ -3,29 +3,53 @@
 <head>
     <meta charset="utf-8">
     <title>Chat with Redis</title>
+<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.3.0/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/style.css">
+
 </head>
 <body>
-    <p>Status: <span id="status">Undefined</span></p>
+
+    <!-- Topbar
+    ================================================== -->
+    <div class="topbar" >
+      <div class="topbar-inner">
+        <div class="container">
+          <a class="brand" href="#">SEscout - redis style</a>
+          <ul class="nav">
+            <li class="active"><a href="#overview">Dashboard</a></li>
+          </ul>
+          <div class="pull-right" id="userLogin">
+            <form action="" class="pull-right">
+            <input class="input-small" type="text" placeholder="UserID">
+            <button id="userSubmit" class="btn">Sign in</button>
+          </form>
+          </div>
+          <div class="pull-right" id="connStatus">
+            <p style="color:white">Status: <span id="status" class="label success">Undefined</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top:50px;" class="container">
+    <div class="content">
     <ul id="messages">
     <!-- chat messages go here -->
     </ul>
+    <div id="chatDiv">
     <input id="chatform" type="text" autofocus="autofocus" />
+    <button id="chatformSubmit" class="btn primary">Submit</button>
+    </div>
+    </div>
+    </div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
 <script src="http://jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
 <script type="text/coffeescript">
-socket = io.connect ''
+@socket = io.connect ''
 
-
-$('#chatform').click ->
-  socket.emit 'message', $('#chatform').val()
-  $('#chatform').val('')
-  $('<li>').text(message).appendTo $('#messages')
-
-socket.on 'message', (message) ->
-  $('<li>').text(message).appendTo $('#messages')
 
 $status = $ '#status'
+
 socket.on 'connect', ->
   $status.text 'Connected'
 
@@ -40,6 +64,15 @@ socket.on 'reconnect', ->
 
 socket.on 'reconnect_failed', ->
   $status.text 'Failed to reconnect'
+</script>
+<script type="text/coffeescript">
+$('#chatformSubmit').click ->
+  socket.emit 'clientmessage', $('#chatform').val()
+  $('#chatform').val('')
+  $('#chatform').focus()
+
+socket.on 'message', (data) ->
+  $('<li>').text(data).appendTo $('#messages')
 </script>
 </body>
 </html>
